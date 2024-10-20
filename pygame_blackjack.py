@@ -6,6 +6,7 @@ pygame.init()
 cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 one_deck = 4 * cards
 decks = 4
+game_deck = copy.deepcopy(decks * one_deck)
 WIDTH = 600
 HEIGHT = 900
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
@@ -23,12 +24,11 @@ dealer_hand = []
 outcome = 0
 reveal_dealer = False
 hand_active = False
-outcome = 0
 add_score = False
-results = ['', 'PLAYER BUSTED o_O', 'Player WINS! :)', 'DEALER WINS :(', 'TIE GAME...']
+results = ['', 'PLAYER BUSTED o_O', 'Player WINS! :)', 'DEALER WINS :(', 'PUSH...']
 
 def deal_cards(current_hand, current_deck):
-    card = random.randint(0, len(current_deck))
+    card = random.randint(0, len(current_deck)- 1)
     current_hand.append(current_deck[card - 1])
     current_deck.pop(card - 1)
     return current_hand, current_deck
@@ -59,18 +59,17 @@ def draw_cards(player, dealer, reveal):
 def calculate_score(hand):
     hand_score = 0
     aces_count = hand.count('A')
-    for i in range(len(hand)):
-        for j in range(8):
-            if hand[i] == cards[j]:
-                hand_score += int(hand[i])
-        if hand[i] in ['10', 'J', 'Q', 'K']:
+    for card in hand:
+        if card in ['J', 'Q', 'K']:
             hand_score += 10
-        elif hand[i] == 'A':
+        elif card == 'A':
             hand_score += 11
-    if hand_score > 21 and aces_count > 0:
-        for i in range(aces_count):
-            if hand_score > 21:
-                hand_score -= 10
+        else:
+            hand_score += int(card)
+    # Adjust Aces as needed
+    while hand_score > 21 and aces_count > 0:
+        hand_score -= 10
+        aces_count -= 1
     return hand_score
 
 def draw_game(act, record, result):
@@ -152,13 +151,11 @@ while run:
                 if buttons[0].collidepoint(event.pos):
                     active = True
                     initial_deal = True
-                    game_deck = copy.deepcopy(decks * one_deck)
                     my_hand = []
                     dealer_hand = []
                     outcome = 0
                     hand_active = True
                     reveal_dealer = False
-                    outcome = 0
                     add_score = True
             else:
                 if buttons[0].collidepoint(event.pos) and player_score < 21 and hand_active:
@@ -170,13 +167,11 @@ while run:
                     if buttons[2].collidepoint(event.pos):
                         active = True
                         initial_deal = True
-                        game_deck = copy.deepcopy(decks * one_deck)
                         my_hand = []
                         dealer_hand = []
                         outcome = 0
                         hand_active = True
                         reveal_dealer = False
-                        outcome = 0
                         add_score = True
                         dealer_score = 0
                         player_score = 0
