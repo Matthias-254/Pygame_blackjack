@@ -7,7 +7,7 @@ decks = 4
 game_deck = copy.deepcopy(decks * one_deck)
 WIDTH = 1280
 HEIGHT = 720
-BG = pygame.image.load("assets/Background.png")
+BG = pygame.image.load("assets/Background.jpg")
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Pygame Blackjack with Menu")
 timer = pygame.time.Clock()
@@ -29,7 +29,7 @@ results = ['', 'PLAYER BUSTED o_O', 'Player WINS! :)', 'DEALER WINS :(', 'PUSH..
 def get_font(size):
 	return pygame.font.Font("assets/font.ttf", size)
 
-class Button():
+class Button:
 	def __init__(self, image, pos, text_input, font, base_color, hovering_color):
 		self.image = image
 		self.x_pos = pos[0]
@@ -48,12 +48,12 @@ class Button():
 			screen.blit(self.image, self.rect)
 		screen.blit(self.text, self.text_rect)
 
-	def checkForInput(self, position):
+	def check_for_input(self, position):
 		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
 			return True
 		return False
 
-	def changeColor(self, position):
+	def change_color(self, position):
 		if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top, self.rect.bottom):
 			self.text = self.font.render(self.text_input, True, self.hovering_color)
 		else:
@@ -63,22 +63,22 @@ def main_menu():
 	while True:
 		screen.blit(BG, (0, 0))
 
-		MENU_MOUSE_POS = pygame.mouse.get_pos()
+		menu_mouse_pos = pygame.mouse.get_pos()
 
-		MENU_TEXT = get_font(100).render("MAIN MENU", True, "#b68f40")
-		MENU_RECT = MENU_TEXT.get_rect(center=(640, 100))
+		menu_text = get_font(100).render("MAIN MENU", True, "#8f0a0a" , "Grey")
+		menu_rect = menu_text.get_rect(center=(640, 100))
 
-		PLAY_BUTTON = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250),
-							text_input="PLAY", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-		OPTIONS_BUTTON = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(640, 400),
-							text_input="OPTIONS", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
-		QUIT_BUTTON = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550),
-							text_input="QUIT", font=get_font(75), base_color="#d7fcd4", hovering_color="White")
+		play_button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250),
+							text_input="PLAY", font=get_font(75), base_color="#0c7708", hovering_color="Green")
+		options_button = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(640, 400),
+							text_input="OPTIONS", font=get_font(75), base_color="#775608", hovering_color="Orange")
+		quit_button = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550),
+							text_input="QUIT", font=get_font(75), base_color="#770808", hovering_color="Red")
 
-		screen.blit(MENU_TEXT, MENU_RECT)
+		screen.blit(menu_text, menu_rect)
 
-		for button in [PLAY_BUTTON, OPTIONS_BUTTON, QUIT_BUTTON]:
-			button.changeColor(MENU_MOUSE_POS)
+		for button in [play_button, options_button, quit_button]:
+			button.change_color(menu_mouse_pos)
 			button.update(screen)
 
 		for event in pygame.event.get():
@@ -86,11 +86,11 @@ def main_menu():
 				pygame.quit()
 				sys.exit()
 			if event.type == pygame.MOUSEBUTTONDOWN:
-				if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+				if play_button.check_for_input(menu_mouse_pos):
 					blackjack_game()
-				if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
+				if options_button.check_for_input(menu_mouse_pos):
 					options()
-				if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+				if quit_button.check_for_input(menu_mouse_pos):
 					pygame.quit()
 					sys.exit()
 
@@ -98,26 +98,26 @@ def main_menu():
 
 def options():
 	while True:
-		OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
+		options_mouse_pos = pygame.mouse.get_pos()
 
 		screen.fill("white")
 
-		OPTIONS_TEXT = get_font(45).render("This is the OPTIONS screen.", True, "Black")
-		OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(640, 260))
-		screen.blit(OPTIONS_TEXT, OPTIONS_RECT)
+		options_text = get_font(45).render("This is the OPTIONS screen.", True, "Black")
+		options_rect = options_text.get_rect(center=(640, 260))
+		screen.blit(options_text, options_rect)
 
-		OPTIONS_BACK = Button(image=None, pos=(640, 460),
-							text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
+		options_back = Button(image=None, pos=(640, 460),
+							text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Grey")
 
-		OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
-		OPTIONS_BACK.update(screen)
+		options_back.change_color(options_mouse_pos)
+		options_back.update(screen)
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
 				sys.exit()
 			if event.type == pygame.MOUSEBUTTONDOWN:
-				if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
+				if options_back.check_for_input(options_mouse_pos):
 					main_menu()
 
 		pygame.display.update()
@@ -175,18 +175,18 @@ def draw_game(act, record, result):
 		screen.blit(deal_text, (165, 50))
 		button_list.append(deal)
 	else:
-		hit = pygame.draw.rect(screen, 'white', [0, 600, 300, 100], 0, 5)
-		pygame.draw.rect(screen, 'green', [0, 600, 300, 100], 3, 5)
+		hit = pygame.draw.rect(screen, 'white', [0, 560, 300, 100], 0, 5)
+		pygame.draw.rect(screen, 'green', [0, 560, 300, 100], 3, 5)
 		hit_text = font.render('HIT ME', True, 'black')
-		screen.blit(hit_text, (55, 635))
+		screen.blit(hit_text, (55, 595))
 		button_list.append(hit)
-		stand = pygame.draw.rect(screen, 'white', [300, 600, 300, 100], 0, 5)
-		pygame.draw.rect(screen, 'green', [300, 600, 300, 100], 3, 5)
+		stand = pygame.draw.rect(screen, 'white', [300, 560, 300, 100], 0, 5)
+		pygame.draw.rect(screen, 'green', [300, 560, 300, 100], 3, 5)
 		stand_text = font.render('STAND', True, 'black')
-		screen.blit(stand_text, (355, 635))
+		screen.blit(stand_text, (355, 595))
 		button_list.append(stand)
 		score_text = smaller_font.render(f'Wins: {record[0]}   Losses: {record[1]}   Draws: {record[2]}', True, 'white')
-		screen.blit(score_text, (15, 840))
+		screen.blit(score_text, (15, 675))
 	if result != 0:
 		screen.blit(font.render(results[result], True, 'white'), (15, 10))
 		deal = pygame.draw.rect(screen, 'white', [150, 220, 300, 100], 0, 5)
@@ -221,15 +221,12 @@ def check_endgame(hand_act, deal_score, play_score, result, totals, add):
 def blackjack_game():
 	global player_score, dealer_score, my_hand, dealer_hand, initial_deal, reveal_dealer, active, hand_active, add_score, outcome, records, game_deck
 
-	screen = pygame.display.set_mode([WIDTH, HEIGHT])
 	pygame.display.set_caption('Pygame Blackjack!')
-
-	timer = pygame.time.Clock()
 
 	run = True
 	while run:
 		timer.tick(60)
-		screen.fill('black')
+		screen.blit(pygame.image.load('assets/TopViewBjTable.jpg'), (0, 0))
 
 		if initial_deal:
 			for i in range(2):
