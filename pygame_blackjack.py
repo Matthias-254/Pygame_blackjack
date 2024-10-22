@@ -1,4 +1,4 @@
-import pygame, copy, random, sys
+import pygame, copy, random, sys, sqlite3
 
 pygame.init()
 cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
@@ -14,6 +14,7 @@ timer = pygame.time.Clock()
 font = pygame.font.Font('freesansbold.ttf', 44)
 smaller_font = pygame.font.Font('freesansbold.ttf', 36)
 active = False
+connection = sqlite3.connect("blackjack.db")
 records = [0, 0, 0]
 player_score = 0
 dealer_score = 0
@@ -70,14 +71,14 @@ def main_menu():
 
 		play_button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250),
 							text_input="PLAY", font=get_font(75), base_color="#0c7708", hovering_color="Green")
-		options_button = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(640, 400),
-							text_input="OPTIONS", font=get_font(75), base_color="#775608", hovering_color="Orange")
+		leaderboard_button = Button(image=pygame.image.load("assets/Leaderboard Rect.png"), pos=(640, 400),
+							text_input="LEADERBOARD", font=get_font(75), base_color="#775608", hovering_color="Orange")
 		quit_button = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550),
 							text_input="QUIT", font=get_font(75), base_color="#770808", hovering_color="Red")
 
 		screen.blit(menu_text, menu_rect)
 
-		for button in [play_button, options_button, quit_button]:
+		for button in [play_button, leaderboard_button, quit_button]:
 			button.change_color(menu_mouse_pos)
 			button.update(screen)
 
@@ -88,36 +89,36 @@ def main_menu():
 			if event.type == pygame.MOUSEBUTTONDOWN:
 				if play_button.check_for_input(menu_mouse_pos):
 					blackjack_game()
-				if options_button.check_for_input(menu_mouse_pos):
-					options()
+				if leaderboard_button.check_for_input(menu_mouse_pos):
+					leaderboard()
 				if quit_button.check_for_input(menu_mouse_pos):
 					pygame.quit()
 					sys.exit()
 
 		pygame.display.update()
 
-def options():
+def leaderboard():
 	while True:
-		options_mouse_pos = pygame.mouse.get_pos()
+		leaderboard_mouse_pos = pygame.mouse.get_pos()
 
 		screen.fill("white")
 
-		options_text = get_font(45).render("This is the OPTIONS screen.", True, "Black")
-		options_rect = options_text.get_rect(center=(640, 260))
-		screen.blit(options_text, options_rect)
+		leaderboard_text = get_font(45).render("most wins leaderboard:", True, "Gold")
+		leaderboard_rect = leaderboard_text.get_rect(center=(640, 50))
+		screen.blit(leaderboard_text, leaderboard_rect)
 
-		options_back = Button(image=None, pos=(640, 460),
-							text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Grey")
+		leaderboard_back = Button(image=None, pos=(640, 660),
+							text_input="BACK", font=get_font(75), base_color="Darkred", hovering_color="Red")
 
-		options_back.change_color(options_mouse_pos)
-		options_back.update(screen)
+		leaderboard_back.change_color(leaderboard_mouse_pos)
+		leaderboard_back.update(screen)
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
 				sys.exit()
 			if event.type == pygame.MOUSEBUTTONDOWN:
-				if options_back.check_for_input(options_mouse_pos):
+				if leaderboard_back.check_for_input(leaderboard_mouse_pos):
 					main_menu()
 
 		pygame.display.update()
