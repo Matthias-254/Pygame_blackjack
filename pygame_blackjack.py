@@ -15,6 +15,7 @@ font = pygame.font.Font('freesansbold.ttf', 44)
 smaller_font = pygame.font.Font('freesansbold.ttf', 36)
 active = False
 connection = sqlite3.connect("blackjack.db")
+cursor = connection.cursor()
 records = [0, 0, 0]
 player_score = 0
 dealer_score = 0
@@ -29,6 +30,29 @@ results = ['', 'PLAYER BUSTED o_O', 'Player WINS! :)', 'DEALER WINS :(', 'PUSH..
 
 def get_font(size):
 	return pygame.font.Font("assets/font.ttf", size)
+
+cursor.execute("""
+	CREATE TABLE IF NOT EXISTS players (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username TEXT UNIQUE NOT NULL,
+		password TEXT NOT NULL,
+		wins INTEGER DEFAULT 0,
+		losses INTEGER DEFAULT 0,
+		draws INTEGER DEFAULT 0
+		)
+	""")
+#cursor.execute("""
+#	INSERT INTO players VALUES
+#	(1, 'Matthias', '123', 45, 41, 3),
+#	(2, 'John', '456', 13, 12, 1)
+#	""")
+cursor.execute("""
+	SELECT * FROM players
+""")
+rows = cursor.fetchall()
+print(rows)
+
+connection.commit()
 
 class Button:
 	def __init__(self, image, pos, text_input, font, base_color, hovering_color):
