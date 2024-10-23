@@ -27,6 +27,7 @@ reveal_dealer = False
 hand_active = False
 add_score = False
 results = ['', 'PLAYER BUSTED o_O', 'Player WINS! :)', 'DEALER WINS :(', 'PUSH...']
+logged_in = False
 
 def get_font(size):
 	return pygame.font.Font("assets/font.ttf", size)
@@ -44,14 +45,13 @@ cursor.execute("""
 #cursor.execute("""
 #	INSERT INTO players VALUES
 #	(1, 'Matthias', '123', 45, 41, 3),
-#	(2, 'John', '456', 13, 12, 1)
+#	(2, 'John', '456', 13, 12, 1),
+#	(3, 'Jane', '789', 23, 27, 5)
 #	""")
 cursor.execute("""
-	SELECT * FROM players
+    SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10
 """)
-rows = cursor.fetchall()
-print(rows)
-
+players_data = cursor.fetchall()
 connection.commit()
 
 class Button:
@@ -83,6 +83,9 @@ class Button:
 			self.text = self.font.render(self.text_input, True, self.hovering_color)
 		else:
 			self.text = self.font.render(self.text_input, True, self.base_color)
+
+def login_menu():
+	screen.blit(BG, (0, 0))
 
 def main_menu():
 	while True:
@@ -122,30 +125,41 @@ def main_menu():
 		pygame.display.update()
 
 def leaderboard():
-	while True:
-		leaderboard_mouse_pos = pygame.mouse.get_pos()
+    while True:
+        leaderboard_mouse_pos = pygame.mouse.get_pos()
 
-		screen.fill("white")
+        screen.blit(pygame.image.load("assets/LeaderboardBG.jpg"), (0,0))
 
-		leaderboard_text = get_font(45).render("most wins leaderboard:", True, "Gold")
-		leaderboard_rect = leaderboard_text.get_rect(center=(640, 50))
-		screen.blit(leaderboard_text, leaderboard_rect)
+        leaderboard_text = get_font(45).render("Most Wins Leaderboard:", True, "Gold")
+        leaderboard_rect = leaderboard_text.get_rect(center=(640, 50))
+        screen.blit(leaderboard_text, leaderboard_rect)
 
-		leaderboard_back = Button(image=None, pos=(640, 660),
-							text_input="BACK", font=get_font(75), base_color="Darkred", hovering_color="Red")
+        cursor.execute("SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10")
+        players_data = cursor.fetchall()
 
-		leaderboard_back.change_color(leaderboard_mouse_pos)
-		leaderboard_back.update(screen)
+        start_y = 150
+        for index, (username, wins) in enumerate(players_data):
+            player_text = get_font(30).render(f"{index + 1}. {username} - Wins: {wins}", True, "White")
+            player_rect = player_text.get_rect(center=(640, start_y))
+            screen.blit(player_text, player_rect)
+            start_y += 50
 
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				pygame.quit()
-				sys.exit()
-			if event.type == pygame.MOUSEBUTTONDOWN:
-				if leaderboard_back.check_for_input(leaderboard_mouse_pos):
-					main_menu()
+        leaderboard_back = Button(image=None, pos=(640, 660),
+                                  text_input="BACK", font=get_font(75), base_color="Darkred", hovering_color="Red")
 
-		pygame.display.update()
+        leaderboard_back.change_color(leaderboard_mouse_pos)
+        leaderboard_back.update(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if leaderboard_back.check_for_input(leaderboard_mouse_pos):
+                    main_menu()
+
+        pygame.display.update()
+
 
 def deal_cards(current_hand, current_deck):
 	card = random.randint(0, len(current_deck) - 1)
@@ -192,35 +206,37 @@ def calculate_score(hand):
 	return hand_score
 
 def draw_game(act, record, result):
-	button_list = []
-	if not act:
-		deal = pygame.draw.rect(screen, 'white', [150, 20, 300, 100], 0, 5)
-		pygame.draw.rect(screen, 'green', [150, 20, 300, 100], 3, 5)
-		deal_text = font.render('DEAL HAND', True, 'black')
-		screen.blit(deal_text, (165, 50))
-		button_list.append(deal)
-	else:
-		hit = pygame.draw.rect(screen, 'white', [0, 560, 300, 100], 0, 5)
-		pygame.draw.rect(screen, 'green', [0, 560, 300, 100], 3, 5)
-		hit_text = font.render('HIT ME', True, 'black')
-		screen.blit(hit_text, (55, 595))
-		button_list.append(hit)
-		stand = pygame.draw.rect(screen, 'white', [300, 560, 300, 100], 0, 5)
-		pygame.draw.rect(screen, 'green', [300, 560, 300, 100], 3, 5)
-		stand_text = font.render('STAND', True, 'black')
-		screen.blit(stand_text, (355, 595))
-		button_list.append(stand)
-		score_text = smaller_font.render(f'Wins: {record[0]}   Losses: {record[1]}   Draws: {record[2]}', True, 'white')
-		screen.blit(score_text, (15, 675))
-	if result != 0:
-		screen.blit(font.render(results[result], True, 'white'), (15, 10))
-		deal = pygame.draw.rect(screen, 'white', [150, 220, 300, 100], 0, 5)
-		pygame.draw.rect(screen, 'green', [150, 220, 300, 100], 3, 5)
-		pygame.draw.rect(screen, 'black', [153, 223, 294, 94], 3, 5)
-		deal_text = font.render('NEW HAND', True, 'black')
-		screen.blit(deal_text, (165, 250))
-		button_list.append(deal)
-	return button_list
+	if not logged_in:
+		#login_menu()
+		button_list = []
+		if not act:
+			deal = pygame.draw.rect(screen, 'white', [150, 20, 300, 100], 0, 5)
+			pygame.draw.rect(screen, 'green', [150, 20, 300, 100], 3, 5)
+			deal_text = font.render('DEAL HAND', True, 'black')
+			screen.blit(deal_text, (165, 50))
+			button_list.append(deal)
+		else:
+			hit = pygame.draw.rect(screen, 'white', [0, 560, 300, 100], 0, 5)
+			pygame.draw.rect(screen, 'green', [0, 560, 300, 100], 3, 5)
+			hit_text = font.render('HIT ME', True, 'black')
+			screen.blit(hit_text, (55, 595))
+			button_list.append(hit)
+			stand = pygame.draw.rect(screen, 'white', [300, 560, 300, 100], 0, 5)
+			pygame.draw.rect(screen, 'green', [300, 560, 300, 100], 3, 5)
+			stand_text = font.render('STAND', True, 'black')
+			screen.blit(stand_text, (355, 595))
+			button_list.append(stand)
+			score_text = smaller_font.render(f'Wins: {record[0]}   Losses: {record[1]}   Draws: {record[2]}', True, 'white')
+			screen.blit(score_text, (15, 675))
+		if result != 0:
+			screen.blit(font.render(results[result], True, 'white'), (15, 10))
+			deal = pygame.draw.rect(screen, 'white', [150, 220, 300, 100], 0, 5)
+			pygame.draw.rect(screen, 'green', [150, 220, 300, 100], 3, 5)
+			pygame.draw.rect(screen, 'black', [153, 223, 294, 94], 3, 5)
+			deal_text = font.render('NEW HAND', True, 'black')
+			screen.blit(deal_text, (165, 250))
+			button_list.append(deal)
+		return button_list
 
 def check_endgame(hand_act, deal_score, play_score, result, totals, add):
 	if not hand_act and deal_score >= 17:
