@@ -93,7 +93,7 @@ def main_menu():
 
 		menu_mouse_pos = pygame.mouse.get_pos()
 
-		menu_text = get_font(100).render("MAIN MENU", True, "#8f0a0a" , "Grey")
+		menu_text = get_font(100).render("MAIN MENU", True, "#008fff" , "Grey")
 		menu_rect = menu_text.get_rect(center=(640, 100))
 
 		play_button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250),
@@ -210,10 +210,10 @@ def draw_game(act, record, result):
 		#login_menu()
 		button_list = []
 		if not act:
-			deal = pygame.draw.rect(screen, 'white', [150, 20, 300, 100], 0, 5)
-			pygame.draw.rect(screen, 'green', [150, 20, 300, 100], 3, 5)
+			deal = pygame.draw.rect(screen, 'white', [500, 20, 300, 100], 0, 5)
+			pygame.draw.rect(screen, 'green', [500, 20, 300, 100], 3, 5)
 			deal_text = font.render('DEAL HAND', True, 'black')
-			screen.blit(deal_text, (165, 50))
+			screen.blit(deal_text, (515, 50))
 			button_list.append(deal)
 		else:
 			hit = pygame.draw.rect(screen, 'white', [0, 560, 300, 100], 0, 5)
