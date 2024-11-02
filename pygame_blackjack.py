@@ -49,9 +49,8 @@ cursor.execute("""
 #	(3, 'Jane', '789', 23, 27, 5)
 #	""")
 cursor.execute("""
-    SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10
+	SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10
 """)
-players_data = cursor.fetchall()
 connection.commit()
 
 class Button:
@@ -84,81 +83,205 @@ class Button:
 		else:
 			self.text = self.font.render(self.text_input, True, self.base_color)
 
+class TextInput:
+    def __init__(self, pos, width, font, placeholder=""):
+        self.rect = pygame.Rect(pos[0], pos[1], width, font.get_height() + 10)
+        self.font = font
+        self.placeholder = placeholder
+        self.text = ""
+        self.active = False
+        self.color_inactive = pygame.Color('gray')
+        self.color_active = pygame.Color('black')
+        self.color = self.color_inactive
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.active = not self.active
+            else:
+                self.active = False
+            self.color = self.color_active if self.active else self.color_inactive
+
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    return self.text
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+        return None
+
+    def draw(self, screen):
+        txt_surface = self.font.render(self.text if self.text else self.placeholder, True, self.color)
+        screen.blit(txt_surface, (self.rect.x + 5, self.rect.y + 5))
+        pygame.draw.rect(screen, self.color, self.rect, 2)
+
 def login_menu():
-	screen.blit(BG, (0, 0))
+    username_input = TextInput((540, 300), 200, font, placeholder="Username")
+    password_input = TextInput((540, 400), 200, font, placeholder="Password")
+    login_button = Button(image=None, pos=(640, 500), text_input="LOGIN", font=get_font(45), base_color="Green", hovering_color="Lightgreen")
+    register_button = Button(image=None, pos=(640, 600), text_input="REGISTER", font=get_font(35), base_color="Blue", hovering_color="Lightblue")
 
-def main_menu():
-	while True:
-		screen.blit(BG, (0, 0))
-
-		menu_mouse_pos = pygame.mouse.get_pos()
-
-		menu_text = get_font(100).render("MAIN MENU", True, "#008fff" , "Grey")
-		menu_rect = menu_text.get_rect(center=(640, 100))
-
-		play_button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250),
-							text_input="PLAY", font=get_font(75), base_color="#0c7708", hovering_color="Green")
-		leaderboard_button = Button(image=pygame.image.load("assets/Leaderboard Rect.png"), pos=(640, 400),
-							text_input="LEADERBOARD", font=get_font(75), base_color="#775608", hovering_color="Orange")
-		quit_button = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550),
-							text_input="QUIT", font=get_font(75), base_color="#770808", hovering_color="Red")
-
-		screen.blit(menu_text, menu_rect)
-
-		for button in [play_button, leaderboard_button, quit_button]:
-			button.change_color(menu_mouse_pos)
-			button.update(screen)
-
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				pygame.quit()
-				sys.exit()
-			if event.type == pygame.MOUSEBUTTONDOWN:
-				if play_button.check_for_input(menu_mouse_pos):
-					blackjack_game()
-				if leaderboard_button.check_for_input(menu_mouse_pos):
-					leaderboard()
-				if quit_button.check_for_input(menu_mouse_pos):
-					pygame.quit()
-					sys.exit()
-
-		pygame.display.update()
-
-def leaderboard():
     while True:
-        leaderboard_mouse_pos = pygame.mouse.get_pos()
+        screen.blit(BG, (0, 0))
+        login_mouse_pos = pygame.mouse.get_pos()
 
-        screen.blit(pygame.image.load("assets/LeaderboardBG.jpg"), (0,0))
+        login_text = get_font(80).render("LOGIN", True, "#008fff")
+        login_rect = login_text.get_rect(center=(640, 100))
+        screen.blit(login_text, login_rect)
 
-        leaderboard_text = get_font(45).render("Most Wins Leaderboard:", True, "Gold")
-        leaderboard_rect = leaderboard_text.get_rect(center=(640, 50))
-        screen.blit(leaderboard_text, leaderboard_rect)
+        # Draw TextInput fields
+        username_input.draw(screen)
+        password_input.draw(screen)
 
-        cursor.execute("SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10")
-        players_data = cursor.fetchall()
-
-        start_y = 150
-        for index, (username, wins) in enumerate(players_data):
-            player_text = get_font(30).render(f"{index + 1}. {username} - Wins: {wins}", True, "White")
-            player_rect = player_text.get_rect(center=(640, start_y))
-            screen.blit(player_text, player_rect)
-            start_y += 50
-
-        leaderboard_back = Button(image=None, pos=(640, 660),
-                                  text_input="BACK", font=get_font(75), base_color="Darkred", hovering_color="Red")
-
-        leaderboard_back.change_color(leaderboard_mouse_pos)
-        leaderboard_back.update(screen)
+        login_button.change_color(login_mouse_pos)
+        login_button.update(screen)
+        register_button.change_color(login_mouse_pos)
+        register_button.update(screen)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if leaderboard_back.check_for_input(leaderboard_mouse_pos):
-                    main_menu()
+                if login_button.check_for_input(login_mouse_pos):
+                    username = username_input.text
+                    password = password_input.text
+                    cursor.execute("SELECT * FROM players WHERE username = ? AND password = ?", (username, password))
+                    user = cursor.fetchone()
+                    if user:
+                        global logged_in
+                        logged_in = True
+                        blackjack_game()
+                    else:
+                        print("Invalid credentials!")
+                if register_button.check_for_input(login_mouse_pos):
+                    register_menu()
+
+            # Handle text input
+            username_input.handle_event(event)
+            password_input.handle_event(event)
 
         pygame.display.update()
+
+
+def register_menu():
+    username_input = TextInput((540, 300), 200, font, placeholder="New Username")
+    password_input = TextInput((540, 400), 200, font, placeholder="New Password")
+    register_button = Button(image=None, pos=(640, 500), text_input="REGISTER", font=get_font(45), base_color="Green", hovering_color="Lightgreen")
+    back_button = Button(image=None, pos=(640, 600), text_input="BACK", font=get_font(35), base_color="Red", hovering_color="Darkred")
+
+    while True:
+        screen.blit(BG, (0, 0))
+        register_mouse_pos = pygame.mouse.get_pos()
+
+        register_text = get_font(80).render("REGISTER", True, "#008fff")
+        register_rect = register_text.get_rect(center=(640, 100))
+        screen.blit(register_text, register_rect)
+
+        username_input.draw(screen)
+        password_input.draw(screen)
+
+        register_button.change_color(register_mouse_pos)
+        register_button.update(screen)
+        back_button.change_color(register_mouse_pos)
+        back_button.update(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if register_button.check_for_input(register_mouse_pos):
+                    username = username_input.text
+                    password = password_input.text
+                    try:
+                        cursor.execute("INSERT INTO players (username, password) VALUES (?, ?)", (username, password))
+                        connection.commit()
+                        print("Registration successful!")
+                        login_menu()
+                    except sqlite3.IntegrityError:
+                        print("Username already taken!")
+                if back_button.check_for_input(register_mouse_pos):
+                    login_menu()
+
+            username_input.handle_event(event)
+            password_input.handle_event(event)
+
+        pygame.display.update()
+
+def main_menu():
+    while True:
+        screen.blit(BG, (0, 0))
+        menu_mouse_pos = pygame.mouse.get_pos()
+
+        menu_text = get_font(100).render("MAIN MENU", True, "#008fff")
+        menu_rect = menu_text.get_rect(center=(640, 100))
+
+        play_button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250),
+                             text_input="PLAY", font=get_font(75), base_color="#0c7708", hovering_color="Green")
+        leaderboard_button = Button(image=pygame.image.load("assets/Leaderboard Rect.png"), pos=(640, 400),
+                                    text_input="LEADERBOARD", font=get_font(75), base_color="#775608", hovering_color="Orange")
+        quit_button = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550),
+                             text_input="QUIT", font=get_font(75), base_color="#770808", hovering_color="Red")
+
+        screen.blit(menu_text, menu_rect)
+
+        for button in [play_button, leaderboard_button, quit_button]:
+            button.change_color(menu_mouse_pos)
+            button.update(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if play_button.check_for_input(menu_mouse_pos):
+                    login_menu()  # Ga naar het login_menu
+                if leaderboard_button.check_for_input(menu_mouse_pos):
+                    leaderboard()
+                if quit_button.check_for_input(menu_mouse_pos):
+                    pygame.quit()
+                    sys.exit()
+
+        pygame.display.update()
+
+def leaderboard():
+	while True:
+		leaderboard_mouse_pos = pygame.mouse.get_pos()
+
+		screen.blit(pygame.image.load("assets/LeaderboardBG.jpg"), (0,0))
+
+		leaderboard_text = get_font(45).render("Most Wins Leaderboard:", True, "Gold")
+		leaderboard_rect = leaderboard_text.get_rect(center=(640, 50))
+		screen.blit(leaderboard_text, leaderboard_rect)
+
+		cursor.execute("SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10")
+		players_data = cursor.fetchall()
+
+		start_y = 150
+		for index, (username, wins) in enumerate(players_data):
+			player_text = get_font(30).render(f"{index + 1}. {username} - Wins: {wins}", True, "White")
+			player_rect = player_text.get_rect(center=(640, start_y))
+			screen.blit(player_text, player_rect)
+			start_y += 50
+
+		leaderboard_back = Button(image=None, pos=(640, 660),
+								  text_input="BACK", font=get_font(75), base_color="Darkred", hovering_color="Red")
+
+		leaderboard_back.change_color(leaderboard_mouse_pos)
+		leaderboard_back.update(screen)
+
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if leaderboard_back.check_for_input(leaderboard_mouse_pos):
+					main_menu()
+
+		pygame.display.update()
 
 
 def deal_cards(current_hand, current_deck):
@@ -206,37 +329,41 @@ def calculate_score(hand):
 	return hand_score
 
 def draw_game(act, record, result):
-	if not logged_in:
-		#login_menu()
-		button_list = []
-		if not act:
-			deal = pygame.draw.rect(screen, 'white', [500, 20, 300, 100], 0, 5)
-			pygame.draw.rect(screen, 'green', [500, 20, 300, 100], 3, 5)
-			deal_text = font.render('DEAL HAND', True, 'black')
-			screen.blit(deal_text, (515, 50))
-			button_list.append(deal)
-		else:
-			hit = pygame.draw.rect(screen, 'white', [0, 560, 300, 100], 0, 5)
-			pygame.draw.rect(screen, 'green', [0, 560, 300, 100], 3, 5)
-			hit_text = font.render('HIT ME', True, 'black')
-			screen.blit(hit_text, (55, 595))
-			button_list.append(hit)
-			stand = pygame.draw.rect(screen, 'white', [300, 560, 300, 100], 0, 5)
-			pygame.draw.rect(screen, 'green', [300, 560, 300, 100], 3, 5)
-			stand_text = font.render('STAND', True, 'black')
-			screen.blit(stand_text, (355, 595))
-			button_list.append(stand)
-			score_text = smaller_font.render(f'Wins: {record[0]}   Losses: {record[1]}   Draws: {record[2]}', True, 'white')
-			screen.blit(score_text, (15, 675))
-		if result != 0:
-			screen.blit(font.render(results[result], True, 'white'), (15, 10))
-			deal = pygame.draw.rect(screen, 'white', [150, 220, 300, 100], 0, 5)
-			pygame.draw.rect(screen, 'green', [150, 220, 300, 100], 3, 5)
-			pygame.draw.rect(screen, 'black', [153, 223, 294, 94], 3, 5)
-			deal_text = font.render('NEW HAND', True, 'black')
-			screen.blit(deal_text, (165, 250))
-			button_list.append(deal)
-		return button_list
+	button_list = []  # Define button_list at the start
+
+	if not act:
+		deal = pygame.draw.rect(screen, 'white', [500, 20, 300, 100], 0, 5)
+		pygame.draw.rect(screen, 'green', [500, 20, 300, 100], 3, 5)
+		deal_text = font.render('DEAL HAND', True, 'black')
+		screen.blit(deal_text, (515, 50))
+		button_list.append(deal)
+	else:
+		hit = pygame.draw.rect(screen, 'white', [0, 560, 300, 100], 0, 5)
+		pygame.draw.rect(screen, 'green', [0, 560, 300, 100], 3, 5)
+		hit_text = font.render('HIT ME', True, 'black')
+		screen.blit(hit_text, (55, 595))
+		button_list.append(hit)
+
+		stand = pygame.draw.rect(screen, 'white', [300, 560, 300, 100], 0, 5)
+		pygame.draw.rect(screen, 'green', [300, 560, 300, 100], 3, 5)
+		stand_text = font.render('STAND', True, 'black')
+		screen.blit(stand_text, (355, 595))
+		button_list.append(stand)
+
+		score_text = smaller_font.render(f'Wins: {record[0]}   Losses: {record[1]}   Draws: {record[2]}', True, 'white')
+		screen.blit(score_text, (15, 675))
+
+	if result != 0:
+		screen.blit(font.render(results[result], True, 'white'), (15, 10))
+		deal = pygame.draw.rect(screen, 'white', [150, 220, 300, 100], 0, 5)
+		pygame.draw.rect(screen, 'green', [150, 220, 300, 100], 3, 5)
+		pygame.draw.rect(screen, 'black', [153, 223, 294, 94], 3, 5)
+		deal_text = font.render('NEW HAND', True, 'black')
+		screen.blit(deal_text, (165, 250))
+		button_list.append(deal)
+
+	return button_list
+
 
 def check_endgame(hand_act, deal_score, play_score, result, totals, add):
 	if not hand_act and deal_score >= 17:
