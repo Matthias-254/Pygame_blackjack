@@ -133,7 +133,7 @@ def login_menu():
 		register_button.update(screen)
 
 		if error_message:
-			pygame.draw.rect(screen, "lightgray", (400, 200, 690, 50))  # Light gray background for error box
+			pygame.draw.rect(screen, "lightgray", (400, 200, 690, 50))
 			error_text = smaller_font.render(error_message, True, "red")
 			error_text_rect = error_text.get_rect(center=(740, 225))
 			screen.blit(error_text, error_text_rect)
@@ -151,7 +151,7 @@ def login_menu():
 					if user:
 						global logged_in, logged_in_user
 						logged_in = True
-						logged_in_user = username  # Sla de ingelogde gebruikersnaam op
+						logged_in_user = username
 						blackjack_game()
 
 					else:
@@ -357,7 +357,8 @@ def calculate_score(hand):
 		aces_count -= 1
 	return hand_score
 
-def draw_game(act, record, result):
+
+def draw_game(act, result):
 	button_list = []
 
 	if not act:
@@ -367,6 +368,11 @@ def draw_game(act, record, result):
 		screen.blit(deal_text, (515, 50))
 		button_list.append(deal)
 	else:
+		record = get_user_record(logged_in_user)
+
+		score_text = smaller_font.render(f'Wins: {record[0]}   Losses: {record[1]}   Draws: {record[2]}', True, 'white')
+		screen.blit(score_text, (15, 675))
+
 		hit = pygame.draw.rect(screen, 'white', [0, 560, 300, 100], 0, 5)
 		pygame.draw.rect(screen, 'green', [0, 560, 300, 100], 3, 5)
 		hit_text = font.render('HIT ME', True, 'black')
@@ -378,9 +384,6 @@ def draw_game(act, record, result):
 		stand_text = font.render('STAND', True, 'black')
 		screen.blit(stand_text, (355, 595))
 		button_list.append(stand)
-
-		score_text = smaller_font.render(f'Wins: {record[0]}   Losses: {record[1]}   Draws: {record[2]}', True, 'white')
-		screen.blit(score_text, (15, 675))
 
 	if result != 0:
 		screen.blit(font.render(results[result], True, 'white'), (15, 10))
@@ -404,13 +407,13 @@ def check_endgame(hand_act, deal_score, play_score, result, totals, add):
 		else:
 			result = 4
 		if add:
-			if result == 1:  # Verlies
+			if result == 1 or result == 3:
 				totals[1] += 1
 				update_score(logged_in_user, -1)
-			elif result == 2:  # Winst
+			elif result == 2:
 				totals[0] += 1
 				update_score(logged_in_user, 1)
-			elif result == 4:  # Gelijkspel
+			elif result == 4:
 				totals[2] += 1
 				update_score(logged_in_user, 0)
 			add = False
@@ -451,7 +454,7 @@ def blackjack_game():
 					dealer_hand, game_deck = deal_cards(dealer_hand, game_deck)
 			draw_scores(player_score, dealer_score)
 
-		buttons = draw_game(active, records, outcome)
+		buttons = draw_game(active, outcome)
 
 		back_button.change_color(pygame.mouse.get_pos())
 		back_button.update(screen)
