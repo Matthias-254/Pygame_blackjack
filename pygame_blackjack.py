@@ -116,6 +116,15 @@ def login_menu():
 	register_button = Button(image=None, pos=(640, 600), text_input="REGISTER", font=get_font(35), base_color="Blue", hovering_color="Lightblue")
 	error_message = ""
 
+	back_button = Button(
+		image=None,
+		pos=(1200, 660),
+		text_input="BACK",
+		font=get_font(35),
+		base_color="Darkred",
+		hovering_color="Red"
+	)
+
 	while True:
 		screen.blit(BG, (0, 0))
 		login_mouse_pos = pygame.mouse.get_pos()
@@ -132,6 +141,9 @@ def login_menu():
 		register_button.change_color(login_mouse_pos)
 		register_button.update(screen)
 
+		back_button.change_color(pygame.mouse.get_pos())
+		back_button.update(screen)
+
 		if error_message:
 			pygame.draw.rect(screen, "lightgray", (400, 200, 690, 50))
 			error_text = smaller_font.render(error_message, True, "red")
@@ -143,6 +155,9 @@ def login_menu():
 				pygame.quit()
 				sys.exit()
 			if event.type == pygame.MOUSEBUTTONDOWN:
+				if back_button.check_for_input(pygame.mouse.get_pos()):
+					main_menu()
+					return
 				if login_button.check_for_input(login_mouse_pos):
 					username = username_input.text
 					password = password_input.text
@@ -430,8 +445,8 @@ def blackjack_game():
 		pos=(1200, 660),
 		text_input="BACK",
 		font=get_font(35),
-		base_color="Red",
-		hovering_color="Darkred"
+		base_color="Darkred",
+		hovering_color="Red"
 	)
 
 	run = True
