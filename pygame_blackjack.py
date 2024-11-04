@@ -84,168 +84,180 @@ class Button:
 			self.text = self.font.render(self.text_input, True, self.base_color)
 
 class TextInput:
-    def __init__(self, pos, width, font, placeholder=""):
-        self.rect = pygame.Rect(pos[0], pos[1], width, font.get_height() + 10)
-        self.font = font
-        self.placeholder = placeholder
-        self.text = ""
-        self.active = False
-        self.color_inactive = pygame.Color('gray')
-        self.color_active = pygame.Color('black')
-        self.color = self.color_inactive
+	def __init__(self, pos, width, font, placeholder=""):
+		self.rect = pygame.Rect(pos[0], pos[1], width, font.get_height() + 10)
+		self.font = font
+		self.placeholder = placeholder
+		self.text = ""
+		self.active = False
+		self.color_inactive = pygame.Color('gray')
+		self.color_active = pygame.Color('black')
+		self.color = self.color_inactive
 
-    def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.rect.collidepoint(event.pos):
-                self.active = not self.active
-            else:
-                self.active = False
-            self.color = self.color_active if self.active else self.color_inactive
+	def handle_event(self, event):
+		if event.type == pygame.MOUSEBUTTONDOWN:
+			if self.rect.collidepoint(event.pos):
+				self.active = not self.active
+			else:
+				self.active = False
+			self.color = self.color_active if self.active else self.color_inactive
 
-        if event.type == pygame.KEYDOWN:
-            if self.active:
-                if event.key == pygame.K_RETURN:
-                    return self.text
-                elif event.key == pygame.K_BACKSPACE:
-                    self.text = self.text[:-1]
-                else:
-                    self.text += event.unicode
-        return None
+		if event.type == pygame.KEYDOWN:
+			if self.active:
+				if event.key == pygame.K_RETURN:
+					return self.text
+				elif event.key == pygame.K_BACKSPACE:
+					self.text = self.text[:-1]
+				else:
+					self.text += event.unicode
+		return None
 
-    def draw(self, screen):
-        txt_surface = self.font.render(self.text if self.text else self.placeholder, True, self.color)
-        screen.blit(txt_surface, (self.rect.x + 5, self.rect.y + 5))
-        pygame.draw.rect(screen, self.color, self.rect, 2)
+	def draw(self, screen):
+		txt_surface = self.font.render(self.text if self.text else self.placeholder, True, self.color)
+		screen.blit(txt_surface, (self.rect.x + 5, self.rect.y + 5))
+		pygame.draw.rect(screen, self.color, self.rect, 2)
 
 def login_menu():
-    username_input = TextInput((540, 300), 200, font, placeholder="Username")
-    password_input = TextInput((540, 400), 200, font, placeholder="Password")
-    login_button = Button(image=None, pos=(640, 500), text_input="LOGIN", font=get_font(45), base_color="Green", hovering_color="Lightgreen")
-    register_button = Button(image=None, pos=(640, 600), text_input="REGISTER", font=get_font(35), base_color="Blue", hovering_color="Lightblue")
+	username_input = TextInput((500, 300), 300, font, placeholder="Username")
+	password_input = TextInput((500, 400), 300, font, placeholder="Password")
+	login_button = Button(image=None, pos=(640, 500), text_input="LOGIN", font=get_font(45), base_color="Green", hovering_color="Lightgreen")
+	register_button = Button(image=None, pos=(640, 600), text_input="REGISTER", font=get_font(35), base_color="Blue", hovering_color="Lightblue")
+	error_message = ""
 
-    while True:
-        screen.blit(BG, (0, 0))
-        login_mouse_pos = pygame.mouse.get_pos()
+	while True:
+		screen.blit(BG, (0, 0))
+		login_mouse_pos = pygame.mouse.get_pos()
 
-        login_text = get_font(80).render("LOGIN", True, "#008fff")
-        login_rect = login_text.get_rect(center=(640, 100))
-        screen.blit(login_text, login_rect)
+		login_text = get_font(80).render("LOGIN", True, "#008fff")
+		login_rect = login_text.get_rect(center=(640, 100))
+		screen.blit(login_text, login_rect)
 
-        # Draw TextInput fields
-        username_input.draw(screen)
-        password_input.draw(screen)
+		username_input.draw(screen)
+		password_input.draw(screen)
 
-        login_button.change_color(login_mouse_pos)
-        login_button.update(screen)
-        register_button.change_color(login_mouse_pos)
-        register_button.update(screen)
+		login_button.change_color(login_mouse_pos)
+		login_button.update(screen)
+		register_button.change_color(login_mouse_pos)
+		register_button.update(screen)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if login_button.check_for_input(login_mouse_pos):
-                    username = username_input.text
-                    password = password_input.text
-                    cursor.execute("SELECT * FROM players WHERE username = ? AND password = ?", (username, password))
-                    user = cursor.fetchone()
-                    if user:
-                        global logged_in
-                        logged_in = True
-                        blackjack_game()
-                    else:
-                        print("Invalid credentials!")
-                if register_button.check_for_input(login_mouse_pos):
-                    register_menu()
+		if error_message:
+			pygame.draw.rect(screen, "lightgray", (400, 200, 690, 50))  # Light gray background for error box
+			error_text = smaller_font.render(error_message, True, "red")
+			error_text_rect = error_text.get_rect(center=(740, 225))
+			screen.blit(error_text, error_text_rect)
 
-            # Handle text input
-            username_input.handle_event(event)
-            password_input.handle_event(event)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if login_button.check_for_input(login_mouse_pos):
+					username = username_input.text
+					password = password_input.text
+					cursor.execute("SELECT * FROM players WHERE username = ? AND password = ?", (username, password))
+					user = cursor.fetchone()
+					if user:
+						global logged_in
+						logged_in = True
+						blackjack_game()
+					else:
+						error_message = "Invalid credentials! Please try again."
+				if register_button.check_for_input(login_mouse_pos):
+					register_menu()
 
-        pygame.display.update()
+			username_input.handle_event(event)
+			password_input.handle_event(event)
+
+		pygame.display.update()
 
 
 def register_menu():
-    username_input = TextInput((540, 300), 200, font, placeholder="New Username")
-    password_input = TextInput((540, 400), 200, font, placeholder="New Password")
-    register_button = Button(image=None, pos=(640, 500), text_input="REGISTER", font=get_font(45), base_color="Green", hovering_color="Lightgreen")
-    back_button = Button(image=None, pos=(640, 600), text_input="BACK", font=get_font(35), base_color="Red", hovering_color="Darkred")
+	username_input = TextInput((470, 300), 350, font, placeholder="New Username")
+	password_input = TextInput((470, 400), 350, font, placeholder="New Password")
+	register_button = Button(image=None, pos=(640, 500), text_input="REGISTER", font=get_font(45), base_color="Green", hovering_color="Lightgreen")
+	back_button = Button(image=None, pos=(640, 600), text_input="BACK", font=get_font(35), base_color="Red", hovering_color="Darkred")
+	error_message = ""
 
-    while True:
-        screen.blit(BG, (0, 0))
-        register_mouse_pos = pygame.mouse.get_pos()
+	while True:
+		screen.blit(BG, (0, 0))
+		register_mouse_pos = pygame.mouse.get_pos()
 
-        register_text = get_font(80).render("REGISTER", True, "#008fff")
-        register_rect = register_text.get_rect(center=(640, 100))
-        screen.blit(register_text, register_rect)
+		register_text = get_font(80).render("REGISTER", True, "#008fff")
+		register_rect = register_text.get_rect(center=(640, 100))
+		screen.blit(register_text, register_rect)
 
-        username_input.draw(screen)
-        password_input.draw(screen)
+		username_input.draw(screen)
+		password_input.draw(screen)
 
-        register_button.change_color(register_mouse_pos)
-        register_button.update(screen)
-        back_button.change_color(register_mouse_pos)
-        back_button.update(screen)
+		register_button.change_color(register_mouse_pos)
+		register_button.update(screen)
+		back_button.change_color(register_mouse_pos)
+		back_button.update(screen)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if register_button.check_for_input(register_mouse_pos):
-                    username = username_input.text
-                    password = password_input.text
-                    try:
-                        cursor.execute("INSERT INTO players (username, password) VALUES (?, ?)", (username, password))
-                        connection.commit()
-                        print("Registration successful!")
-                        login_menu()
-                    except sqlite3.IntegrityError:
-                        print("Username already taken!")
-                if back_button.check_for_input(register_mouse_pos):
-                    login_menu()
+		if error_message:
+			pygame.draw.rect(screen, "lightgray", (330, 200, 820, 50))
+			error_text = smaller_font.render(error_message, True, "red")
+			error_text_rect = error_text.get_rect(center=(740, 225))
+			screen.blit(error_text, error_text_rect)
 
-            username_input.handle_event(event)
-            password_input.handle_event(event)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if register_button.check_for_input(register_mouse_pos):
+					username = username_input.text
+					password = password_input.text
+					try:
+						cursor.execute("INSERT INTO players (username, password) VALUES (?, ?)", (username, password))
+						connection.commit()
+						login_menu()
+					except sqlite3.IntegrityError:
+						error_message = "Username already taken! Try a different one."
+				if back_button.check_for_input(register_mouse_pos):
+					login_menu()
 
-        pygame.display.update()
+			username_input.handle_event(event)
+			password_input.handle_event(event)
+
+		pygame.display.update()
+
 
 def main_menu():
-    while True:
-        screen.blit(BG, (0, 0))
-        menu_mouse_pos = pygame.mouse.get_pos()
+	while True:
+		screen.blit(BG, (0, 0))
+		menu_mouse_pos = pygame.mouse.get_pos()
 
-        menu_text = get_font(100).render("MAIN MENU", True, "#008fff")
-        menu_rect = menu_text.get_rect(center=(640, 100))
+		menu_text = get_font(100).render("MAIN MENU", True, "#008fff")
+		menu_rect = menu_text.get_rect(center=(640, 100))
 
-        play_button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250),
-                             text_input="PLAY", font=get_font(75), base_color="#0c7708", hovering_color="Green")
-        leaderboard_button = Button(image=pygame.image.load("assets/Leaderboard Rect.png"), pos=(640, 400),
-                                    text_input="LEADERBOARD", font=get_font(75), base_color="#775608", hovering_color="Orange")
-        quit_button = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550),
-                             text_input="QUIT", font=get_font(75), base_color="#770808", hovering_color="Red")
+		play_button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 250),
+							 text_input="PLAY", font=get_font(75), base_color="#0c7708", hovering_color="Green")
+		leaderboard_button = Button(image=pygame.image.load("assets/Leaderboard Rect.png"), pos=(640, 400),
+									text_input="LEADERBOARD", font=get_font(75), base_color="#775608", hovering_color="Orange")
+		quit_button = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(640, 550),
+							 text_input="QUIT", font=get_font(75), base_color="#770808", hovering_color="Red")
 
-        screen.blit(menu_text, menu_rect)
+		screen.blit(menu_text, menu_rect)
 
-        for button in [play_button, leaderboard_button, quit_button]:
-            button.change_color(menu_mouse_pos)
-            button.update(screen)
+		for button in [play_button, leaderboard_button, quit_button]:
+			button.change_color(menu_mouse_pos)
+			button.update(screen)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if play_button.check_for_input(menu_mouse_pos):
-                    login_menu()  # Ga naar het login_menu
-                if leaderboard_button.check_for_input(menu_mouse_pos):
-                    leaderboard()
-                if quit_button.check_for_input(menu_mouse_pos):
-                    pygame.quit()
-                    sys.exit()
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				sys.exit()
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if play_button.check_for_input(menu_mouse_pos):
+					login_menu()
+				if leaderboard_button.check_for_input(menu_mouse_pos):
+					leaderboard()
+				if quit_button.check_for_input(menu_mouse_pos):
+					pygame.quit()
+					sys.exit()
 
-        pygame.display.update()
+		pygame.display.update()
 
 def leaderboard():
 	while True:
@@ -329,7 +341,7 @@ def calculate_score(hand):
 	return hand_score
 
 def draw_game(act, record, result):
-	button_list = []  # Define button_list at the start
+	button_list = []
 
 	if not act:
 		deal = pygame.draw.rect(screen, 'white', [500, 20, 300, 100], 0, 5)
@@ -391,6 +403,15 @@ def blackjack_game():
 
 	pygame.display.set_caption('Pygame Blackjack!')
 
+	back_button = Button(
+		image=None,
+		pos=(1200, 660),
+		text_input="BACK",
+		font=get_font(35),
+		base_color="Red",
+		hovering_color="Darkred"
+	)
+
 	run = True
 	while run:
 		timer.tick(60)
@@ -413,10 +434,17 @@ def blackjack_game():
 
 		buttons = draw_game(active, records, outcome)
 
+		back_button.change_color(pygame.mouse.get_pos())
+		back_button.update(screen)
+
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				run = False
 			if event.type == pygame.MOUSEBUTTONUP:
+				if back_button.check_for_input(pygame.mouse.get_pos()):
+					main_menu()
+					return
+
 				if not active:
 					if buttons[0].collidepoint(event.pos):
 						active = True
@@ -454,5 +482,6 @@ def blackjack_game():
 
 		pygame.display.flip()
 	pygame.quit()
+
 
 main_menu()
