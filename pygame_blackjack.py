@@ -28,6 +28,7 @@ hand_active = False
 add_score = False
 results = ['', 'PLAYER BUSTED o_O', 'Player WINS! :)', 'DEALER WINS :(', 'PUSH...']
 logged_in = False
+logged_in_user = None
 
 def get_font(size):
 	return pygame.font.Font("assets/font.ttf", size)
@@ -42,15 +43,6 @@ cursor.execute("""
 		draws INTEGER DEFAULT 0
 		)
 	""")
-#cursor.execute("""
-#	INSERT INTO players VALUES
-#	(1, 'Matthias', '123', 45, 41, 3),
-#	(2, 'John', '456', 13, 12, 1),
-#	(3, 'Jane', '789', 23, 27, 5)
-#	""")
-cursor.execute("""
-	SELECT username, wins FROM players ORDER BY wins DESC LIMIT 10
-""")
 connection.commit()
 
 class Button:
@@ -157,9 +149,11 @@ def login_menu():
 					cursor.execute("SELECT * FROM players WHERE username = ? AND password = ?", (username, password))
 					user = cursor.fetchone()
 					if user:
-						global logged_in
+						global logged_in, logged_in_user
 						logged_in = True
+						logged_in_user = username  # Sla de ingelogde gebruikersnaam op
 						blackjack_game()
+
 					else:
 						error_message = "Invalid credentials! Please try again."
 				if register_button.check_for_input(login_mouse_pos):
@@ -169,7 +163,6 @@ def login_menu():
 			password_input.handle_event(event)
 
 		pygame.display.update()
-
 
 def register_menu():
 	username_input = TextInput((470, 300), 350, font, placeholder="New Username")
@@ -222,7 +215,6 @@ def register_menu():
 
 		pygame.display.update()
 
-
 def main_menu():
 	while True:
 		screen.blit(BG, (0, 0))
@@ -258,6 +250,33 @@ def main_menu():
 					sys.exit()
 
 		pygame.display.update()
+
+def connect_db():
+    conn = sqlite3.connect('blackjack.db')
+    return conn
+
+def update_score(username, outcome):
+	if username is None:
+		return
+
+	conn = connect_db()
+	cursor = conn.cursor()
+	if outcome == 1:
+		cursor.execute("UPDATE players SET wins = wins + 1 WHERE username = ?", (username,))
+	elif outcome == -1:
+		cursor.execute("UPDATE players SET losses = losses + 1 WHERE username = ?", (username,))
+	elif outcome == 0:
+		cursor.execute("UPDATE players SET draws = draws + 1 WHERE username = ?", (username,))
+	conn.commit()
+	conn.close()
+
+def get_user_record(username):
+    conn = connect_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT wins, losses, draws FROM players WHERE username = ?", (username,))
+    record = cursor.fetchone()
+    conn.close()
+    return record if record else (0, 0, 0)
 
 def leaderboard():
 	while True:
@@ -295,7 +314,6 @@ def leaderboard():
 
 		pygame.display.update()
 
-
 def deal_cards(current_hand, current_deck):
 	card = random.randint(0, len(current_deck) - 1)
 	current_hand.append(current_deck[card])
@@ -306,7 +324,6 @@ def draw_scores(player, dealer):
 	screen.blit(font.render(f'Score[{player}]', True, 'white'), (350, 400))
 	if reveal_dealer:
 		screen.blit(font.render(f'Score[{dealer}]', True, 'white'), (350, 100))
-
 
 def draw_cards(player, dealer, reveal):
 	for i in range(len(player)):
@@ -376,7 +393,6 @@ def draw_game(act, record, result):
 
 	return button_list
 
-
 def check_endgame(hand_act, deal_score, play_score, result, totals, add):
 	if not hand_act and deal_score >= 17:
 		if play_score > 21:
@@ -388,15 +404,18 @@ def check_endgame(hand_act, deal_score, play_score, result, totals, add):
 		else:
 			result = 4
 		if add:
-			if result == 1 or result == 3:
+			if result == 1:  # Verlies
 				totals[1] += 1
-			elif result == 2:
+				update_score(logged_in_user, -1)
+			elif result == 2:  # Winst
 				totals[0] += 1
-			else:
+				update_score(logged_in_user, 1)
+			elif result == 4:  # Gelijkspel
 				totals[2] += 1
+				update_score(logged_in_user, 0)
 			add = False
-	return result, totals, add
 
+	return result, totals, add
 
 def blackjack_game():
 	global player_score, dealer_score, my_hand, dealer_hand, initial_deal, reveal_dealer, active, hand_active, add_score, outcome, records, game_deck
@@ -482,6 +501,5 @@ def blackjack_game():
 
 		pygame.display.flip()
 	pygame.quit()
-
 
 main_menu()
