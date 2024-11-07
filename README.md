@@ -1,4 +1,4 @@
-###Dit project is door mij (Matthias Lannoo) gemaakt. 
+##Dit project is door mij (Matthias Lannoo) gemaakt. 
 ##How to use:
 - Om mijn project te runnen kan je gewoon het volledige project kopiëren en runnen in PyCharm. Het project bevast standaard al een database met een gebruiker in. De inloggegevens van deze gebruiker zijn: "test" als naam en "test" als wachtwoord. Je kunt ook de databse file verwijderen, dan word er automatisch een lege database gemaakt als je dan runt. 
 
