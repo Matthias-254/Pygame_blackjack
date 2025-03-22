@@ -1,11 +1,11 @@
-Dit project is door mij (Matthias Lannoo) gemaakt. 
+This project was created by me (Matthias Lannoo). 
 How to use:
-- Om mijn project te runnen kan je gewoon het volledige project kopiëren en runnen in PyCharm. Het project bevat standaard al een database met een gebruiker in. De inloggegevens van deze gebruiker zijn: "test" als naam en "test" als wachtwoord. Je kunt ook de databse file verwijderen, dan word er automatisch een lege database gemaakt als je dan runt. 
+- To run my project, simply copy the entire project and run it in PyCharm. The project already includes a database with a user by default. The login credentials for this user are: "test" as the username and "test" as the password. You can also delete the database file; in that case, a new empty database will be created automatically when you run the project. 
 
-Voor dit project heb ik een aantal bronnen gebruikt.
-Hier is een lijst van die bronnen:
-- Voor de syntax te leren van Pyhton heb ik deze video bekeken: https://www.youtube.com/watch?v=ix9cRaBkVe0&t=8602s
-- Om het pygame framework te begrijpen heb ik de documentatie op de pygame website gebruikt: https://www.pygame.org/docs/
-- De basis van de pygame-blackjackgame is gebaseerd op deze video: https://www.youtube.com/watch?v=e3YkdOXhFpQ
-- Het main menu is gebaseerd op deze video: https://www.youtube.com/watch?v=GMBqjxcKogA&t=55s
-- Om te weten hoe ik met een sqlite database moest werken in pyhton heb ik volgende video bekeken: https://www.youtube.com/watch?v=Ohj-CqALrwk
+For this project, I used several sources.
+Here is a list of those sources:
+- To learn Python syntax, I watched this video: https://www.youtube.com/watch?v=ix9cRaBkVe0&t=8602s
+- To understand the Pygame framework, I used the documentation on the Pygame website: https://www.pygame.org/docs/
+- The foundation of the Pygame blackjack game is based on this video: https://www.youtube.com/watch?v=e3YkdOXhFpQ
+- The main menu is based on this video: https://www.youtube.com/watch?v=GMBqjxcKogA&t=55s
+- To learn how to work with an SQLite database in Python, I watched the following video: https://www.youtube.com/watch?v=Ohj-CqALrwk
